@@ -32,7 +32,7 @@ const imageSchema = new mongoose.Schema({
     },
     processingType: {
         type: String,
-        default: 'analysis', // eg: 'resize', 'filter', 'detection'
+        default: 'analysis', 
     },
     analysisResults: {
         type: mongoose.Schema.Types.Mixed, 

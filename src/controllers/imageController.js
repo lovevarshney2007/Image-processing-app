@@ -2,6 +2,7 @@ import { Image } from "../models/imageModel.js";
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import sharp from "sharp";
 import  crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -42,6 +43,7 @@ const uploadImageController = asyncHandler(async (req,res) => {
         }
     }
 
+    // add Image
     const newImage = await Image.create({
         userId : userId,
         originalPath: req.file.path, 
@@ -77,6 +79,7 @@ const getImageDetailsController = asyncHandler(async(req,res) => {
         throw new ApiError(403, "Access denied. Not the owner of this image.");
     }
 
+
     return res
         .status(200)
         .json(
@@ -89,4 +92,111 @@ const getImageDetailsController = asyncHandler(async(req,res) => {
 
 })
 
-export { uploadImageController, getImageDetailsController };
+
+const  resizeImageController = asyncHandler(async (req,res) => {
+    const { imageId, width , height } = req.body;
+    const userId = req.user._id;
+
+    if(!imageId || !width || !height) {
+        throw new ApiError(400, "ImageId , width and height are required for resizing.")
+    }
+
+    const image = await Image.findById(imageId);
+
+    if(!image){
+        throw new ApiError(404,"Image not found.");
+    }
+
+    // authorization check 
+    if(image.userId.toString() !== userId.toString()){
+        throw new ApiError(403, "Access denied. You can only resize your own images.");
+    }
+
+    try{
+        // Path define karna 
+        const  originalFilePath = path.normalize(path.resolve(image.originalPath));
+        const processedFileName = `resized-${width}x${height}-${image.fileName}`;
+        const processedFilePath = path.resolve('public','uploads', processedFileName);
+
+        // resizing Image by sharp module
+        await sharp(originalFilePath)
+        .resize(parseInt(width),parseInt(height))
+        .toFile(processedFilePath);
+
+        // Update Database Entry
+        image.processedPath = processedFilePath;
+        image.processingType = `resize_${width}x${height}`;
+        image.status = 'completed';
+        await image.save();
+
+        return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,{
+                    ...image.toObject(),
+                    // Frontend ke liye Url (jahan se image serve hogi)
+                    processedUrl: `/uploads/${processedFileName}`
+                },
+                "Image resized successfully"
+            )
+        );
+    } catch(error){
+        image.status = 'failed';
+        await image.save();
+        console.error("Sharp Processing Error : ",error);
+        throw new ApiError(500,`Image processing failed : ${error.code || error.message}`);
+    }
+});
+
+
+const grayscaleImageController = asyncHandler(async(req,res) => {
+    const { imageId } = req.body;
+    const userId = req.user._id;
+
+    if(!imageId){
+        throw new ApiError(400, "Image id is required for filtering");
+    }
+
+    const image = await Image.findById(imageId);
+    if(!image || image.userId.toString() !== userId.toString()){
+        throw new ApiError(403,"Access denied");
+    }
+    
+    try {
+        const originalFilePath = path.normalize(path.resolve(image.originalPath));
+        const processedFileName = `grayscale-${image.fileName}`;
+        const processedFilePath = path.resolve('public','uploads',processedFileName);
+
+        await sharp(originalFilePath)
+          .grayscale()
+          .toFile(processedFilePath);
+
+          image.processedPath = processedFilePath;
+          image.processingType = 'grayscale';
+          image.status = 'completed';
+          await image.save();
+
+          return res
+            .status(200)
+            .json(new ApiResponse(200, {
+                ...image.toObject(),
+                processedUrl: `/uploads/${processedFileName}`
+            }, "Image filtered to grayscale successfully."));
+
+
+    } catch (error) {
+
+        image.status = 'failed';
+        await image.save();
+        console.error("Grayscale Processing Error:", error);
+        throw new ApiError(500, `Image filtering failed: ${error.message}`);
+    }
+})
+
+export { 
+    uploadImageController, 
+    getImageDetailsController,
+    resizeImageController,
+    grayscaleImageController
+};

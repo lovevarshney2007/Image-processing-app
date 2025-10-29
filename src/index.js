@@ -11,6 +11,7 @@ import { asyncHandler } from "./utils/asyncHandler.js";
 import { ApiError } from "./utils/ApiError.js";
 import { ApiResponse } from "./utils/ApiResponse.js";
 import imageRoutes from "./routes/imageRoutes.js";
+import path from 'path';
 
 // load environmental Variable
 dotenv.config({
@@ -57,6 +58,7 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
+app.use('/uploads', express.static(path.resolve('public/uploads')));
 
 // test route
 app.get("/",(req , res) => {
