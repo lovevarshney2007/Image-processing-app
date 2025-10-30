@@ -29,11 +29,10 @@ const app = express();
 
 app.use(
   cors({
-   origin: ["http://localhost:5173", "https://image-processing-app-sepia.vercel.app",
-    "https://image-processing-tool-c7k8.vercel.app"],
+   origin: "*",
   
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
+    credentials: false,
  })
 )
 
