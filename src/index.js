@@ -18,6 +18,8 @@ dotenv.config({
     path : './.env'
 })
 
+
+
 // connect To mongodb
 connectDb();
 
@@ -51,7 +53,6 @@ const limiter = rateLimit({
     },
 })
 
-
 // middlewares
 app.use(limiter);
 app.use(cors());
@@ -77,5 +78,16 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
     console.log(`server running on Port ${PORT}`);
 })
+
+
+const http = require('http');
+
+module.exports = (req, res) => {
+  
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  
+  
+  res.end('Hello from Agnisense Vercel Function!\n');
+};
 
 
