@@ -26,17 +26,21 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
 // Register User
 const registerController = asyncHandler(async (req, res) => {
-  const {  userName, email, password } = req.body;
+  const { userName, email, password, confirmPassword } = req.body;
 
   if (
-    [ userName, email, password].some(
+    [userName, email, password, confirmPassword].some(
       (field) => !field || field.trim() === ""
     )
   ) {
     throw new ApiError(
       400,
-      "All fields (name,userName,email,password) are required"
+      "All fields (userName,email,password,confirmPassword) are required"
     );
+  }
+
+  if (password !== confirmPassword) {
+    throw new ApiError(400, "Password and confirm password do not match.");
   }
 
   const existingUser = await User.findOne({ email });
@@ -44,7 +48,7 @@ const registerController = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User Already registered , Please Login");
   }
 
-  const user = await User.create({  userName, email, password });
+  const user = await User.create({ userName, email, password });
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
@@ -55,18 +59,16 @@ const registerController = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(
-      new ApiResponse(201,createdUser ,"User registered successfully")
-    );
+    .json(new ApiResponse(201, createdUser, "User registered successfully"));
 });
 
 // Login User
 const loginController = asyncHandler(async (req, res) => {
   const { email, userName, password } = req.body;
 
-  if (!email && !userName) { 
-     throw new ApiError(400, "Email/Username and Password Are Required");
-}
+  if (!email && !userName) {
+    throw new ApiError(400, "Email/Username and Password Are Required");
+  }
 
   const user = await User.findOne({ email }).select("+password +refreshToken");
   if (!user) {
@@ -132,38 +134,33 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Refresh token is missing");
   }
-    const decodedToken = JWT.verify(
-      incomingRefreshToken,
-      process.env.JWT_SECRET
+  const decodedToken = JWT.verify(incomingRefreshToken, process.env.JWT_SECRET);
+
+  const user = await User.findById(decodedToken?._id).select("+refreshToken");
+
+  if (!user || incomingRefreshToken !== user?.refreshToken) {
+    throw new ApiError(401, "Invalid or expired refresh token");
+  }
+
+  const { accessToken, refreshToken: newRefreshToken } =
+    await generateAccessAndRefreshTokens(user._id);
+
+  const options = {
+    httpOnly: true,
+    secure: process.env.Node_ENV === "production",
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", newRefreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { accessToken },
+        "Access Token refreshed successfully"
+      )
     );
-
-
-    const user = await User.findById(decodedToken?._id).select("+refreshToken");
-
-    if (!user || incomingRefreshToken !== user?.refreshToken) {
-      throw new ApiError(401, "Invalid or expired refresh token");
-    }
-
-    const { accessToken, refreshToken: newRefreshToken } =
-      await generateAccessAndRefreshTokens(user._id);
-
-    const options = {
-      httpOnly: true,
-      secure: process.env.Node_ENV === "production",
-    };
-
-    return res
-      .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newRefreshToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          { accessToken },
-          "Access Token refreshed successfully"
-        )
-      );
-  
 });
 
 // Forgot Passworder Controller
@@ -265,7 +262,7 @@ const socialLoginMockController = asyncHandler(async (req, res) => {
   if (!user) {
     user = await User.create({
       // name: "Social User",
-      userName : "mockUsername",
+      userName: "mockUsername",
       email: email,
       password: "MOCKED_PASSWORD_SOCIAL",
       role: "user",
