@@ -59,10 +59,11 @@ app.use(limiter);
 
 app.use(
   cors({
-   origin: ["http://localhost:5173", "https://image-processing-frontend-domain.vercel.app"],
+   origin: ["http://localhost:5173", "https://image-processing-app-sepia.vercel.app"],
+  
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-  })
+ })
 )
 app.use(express.json());
 app.use(cookieParser());
@@ -81,11 +82,11 @@ app.use("/api/v1/images", imageRoutes);
 app.use(errorMiddleware)
 
 
-// server Listening
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-    console.log(`server running on Port ${PORT}`);
-})
+// // server Listening
+// const PORT = process.env.PORT || 4000;
+// app.listen(PORT, () => {
+//     console.log(`server running on Port ${PORT}`);
+// })
 
 
 
@@ -96,16 +97,16 @@ app.listen(PORT, () => {
 
 
 
-const temp=(req, res) => {
+// const temp=(req, res) => {
   
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
+//   res.writeHead(200, { 'Content-Type': 'text/plain' });
   
   
-  res.end('Hello from Agnisense Vercel Function!\n');
-};
+//   res.end('Hello from Agnisense Vercel Function!\n');
+// };
 
-export {
-    temp
-}
+// export {
+//     temp
+// }
 
 
