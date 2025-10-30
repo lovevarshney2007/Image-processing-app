@@ -26,6 +26,15 @@ connectDb();
 // initiallize express app
 const app = express();
 
+pp.use(
+  cors({
+   origin: ["http://localhost:5173", "https://image-processing-app-sepia.vercel.app"],
+  
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+ })
+)
+
 // Rate-Limiting
 const limiter = rateLimit({
     windowMs : 60*1000,
@@ -57,14 +66,8 @@ const limiter = rateLimit({
 app.use(limiter);
 // app.use(cors());
 
-app.use(
-  cors({
-   origin: ["http://localhost:5173", "https://image-processing-app-sepia.vercel.app"],
-  
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
- })
-)
+
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
