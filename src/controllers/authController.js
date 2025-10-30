@@ -44,7 +44,7 @@ const registerController = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User Already registered , Please Login");
   }
 
-  const user = await User.create({ name, userName, email, password });
+  const user = await User.create({  userName, email, password });
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
@@ -264,7 +264,7 @@ const socialLoginMockController = asyncHandler(async (req, res) => {
 
   if (!user) {
     user = await User.create({
-      name: "Social User",
+      // name: "Social User",
       userName : "mockUsername",
       email: email,
       password: "MOCKED_PASSWORD_SOCIAL",
