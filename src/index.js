@@ -80,14 +80,24 @@ app.listen(PORT, () => {
 })
 
 
-const http = require('http');
 
-module.exports = (req, res) => {
+// import http from "http";
+
+// const http = require('http');
+
+
+
+
+const temp=(req, res) => {
   
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   
   
   res.end('Hello from Agnisense Vercel Function!\n');
 };
+
+export {
+    temp
+}
 
 
