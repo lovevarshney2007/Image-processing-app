@@ -26,7 +26,7 @@ connectDb();
 // initiallize express app
 const app = express();
 
-pp.use(
+app.use(
   cors({
    origin: ["http://localhost:5173", "https://image-processing-app-sepia.vercel.app"],
   
