@@ -12,6 +12,7 @@ import { ApiError } from "./utils/ApiError.js";
 import { ApiResponse } from "./utils/ApiResponse.js";
 import imageRoutes from "./routes/imageRoutes.js";
 import path from 'path';
+import { SuspiciousLog } from "./models/suspiciousLogModel.js";
 
 // load environmental Variable
 dotenv.config({
@@ -63,14 +64,16 @@ const limiter = rateLimit({
 })
 
 // middlewares
-app.use(limiter);
-// app.use(cors());
+
 
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
+
+app.use(limiter);
+
 app.use('/uploads', express.static(path.resolve('public/uploads')));
 
 // test route
@@ -84,6 +87,8 @@ app.use("/api/v1/images", imageRoutes);
 
 app.use(errorMiddleware)
 
+
+export default app;
 
 // // server Listening
 // const PORT = process.env.PORT || 4000;

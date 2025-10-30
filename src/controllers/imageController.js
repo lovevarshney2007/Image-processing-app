@@ -5,16 +5,12 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { rejects } from "assert";
 
-// // upload image controller
-// const uploadImageController = asyncHandler(async (req,res) => {
-//     if(!req.file) {
-//         throw new ApiError(400, "No image file provided for upload.");
-//     }
 
-//     const userId = req.user._id;
-//     const { processingType } = req.body; 
-//     // const filePath = req.file.path;
-
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 //     const cloudinaryUrl = req.file.path || req.file.url;
 //     const publicId = req.file.filename || req.file.public_id;
 
@@ -88,21 +84,28 @@ const uploadImageController = asyncHandler(async (req,res) => {
         const userId = req.user._id;
         const { processingType } = req.body; 
         
-        const cloudinaryUrl = req.file.path || req.file.url;
+        const cloudinaryUrl = req.file.path || req.file.url || req.file.secure_url;
         const publicId = req.file.filename || req.file.public_id;
+
+
+        if (!cloudinaryUrl || !publicId) {
+             throw new ApiError(500, "Cloudinary upload failed: Missing URL/Public ID in response.");
+        }
+
         
         // --- STEP 2: Database Operation ---
         console.log("[DEBUG] Starting database creation...");
         const newImage = await Image.create({
-            userId : userId,
+            userId : req.user._id,
             originalPath: cloudinaryUrl, 
             fileName: publicId,
-            processingType: processingType || 'analysis',
+            processingType: req.body.processingType || 'analysis',
             metaData: {
                 size: req.file.size,
                 mimetype: req.file.mimetype,
                 publicId : publicId,
             },
+            fileHash: `${req.user._id}-${Date.now()}`
         });
         console.log("[DEBUG] Database entry successful. Sending response.");
 
