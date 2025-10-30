@@ -59,7 +59,7 @@ app.use(limiter);
 
 app.use(
   cors({
-    origin: "*",
+   origin: ["http://localhost:5173", "https://image-processing-frontend-domain.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
