@@ -229,6 +229,28 @@ const forgotPasswordController = asyncHandler(async (req, res) => {
   console.log(`URL for ${email}: ${passwordResetURL}`);
   console.log(`Token expires in 1 hour.`);
 
+
+    const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `"Auth System" <${process.env.EMAIL_USER}>`,
+    to: user.email,
+    subject: "Password Reset Link",
+    html: `
+      <h3>Password Reset Request</h3>
+      <p>Click the link below to reset your password:</p>
+      <a href="${passwordResetURL}" target="_blank">${passwordResetURL}</a>
+      <p>This link will expire in 1 hour.</p>
+    `,
+  });
+
+
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Password reset link sent to email."));
