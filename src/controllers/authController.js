@@ -1,9 +1,13 @@
 import { User } from "../models/userModel.js";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 import JWT from "jsonwebtoken";
+
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import crypto from "crypto";
+
+
 
 // generateAccessAndRefreshTokens
 const generateAccessAndRefreshTokens = async (userId) => {
