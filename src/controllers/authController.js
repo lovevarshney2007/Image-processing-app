@@ -109,6 +109,40 @@ const loginController = asyncHandler(async (req, res) => {
     );
 });
 
+// update Password Controller
+const updatePasswordController = asyncHandler(async (req,res) => {
+  const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+  if (newPassword !== confirmNewPassword) {
+        throw new ApiError(400, "New password and confirm password do not match.");
+  }
+
+  const user = await User.findById(req.user._id).select('+password');
+  if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid old password. Please enter your current password correctly.");
+    }
+  user.password = newPassword; 
+    await user.save();
+
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+    };
+
+    return res
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(
+            new ApiResponse(
+                200, 
+                {}, 
+                "Password updated successfully. Please log in again."
+            )
+        );
+
+})
+
 // Logout User
 const logoutController = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(req.user._id, {
@@ -306,4 +340,5 @@ export {
   forgotPasswordController,
   resetPasswordController,
   socialLoginMockController,
+  updatePasswordController
 };
