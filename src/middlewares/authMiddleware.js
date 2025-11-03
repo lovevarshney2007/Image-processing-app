@@ -5,7 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { User } from "../models/userModel.js"
 
 // middleware to check for a valid JWT token
-const verifyJWT = asyncHandler(async (req,resizeBy,next) => {
+const verifyJWT = asyncHandler(async (req,res,next) => {
     const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ","")
 
     if(!token){
