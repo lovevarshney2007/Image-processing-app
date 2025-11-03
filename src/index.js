@@ -14,6 +14,7 @@ import imageRoutes from "./routes/imageRoutes.js";
 import path from 'path';
 import { SuspiciousLog } from "./models/suspiciousLogModel.js";
 
+
 // load environmental Variable
 dotenv.config({
     path : './.env'
@@ -91,30 +92,10 @@ app.use(errorMiddleware)
 export default app;
 
 // // server Listening
-// const PORT = process.env.PORT || 4000;
-// app.listen(PORT, () => {
-//     console.log(`server running on Port ${PORT}`);
-// })
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+    console.log(`server running on Port ${PORT}`);
+})
 
-
-
-// import http from "http";
-
-// const http = require('http');
-
-
-
-
-// const temp=(req, res) => {
-  
-//   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  
-  
-//   res.end('Hello from Agnisense Vercel Function!\n');
-// };
-
-// export {
-//     temp
-// }
 
 

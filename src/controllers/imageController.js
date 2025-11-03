@@ -11,70 +11,16 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-//     const cloudinaryUrl = req.file.path || req.file.url;
-//     const publicId = req.file.filename || req.file.public_id;
 
-//     // const hash = await new Promise((resolve,reject) => {
-//     //     const hash = crypto.createHash('sha256');
-//     //     const stream = fs.createReadStream(filePath);
-//     //    stream.on('error', err => {
-//     //         fs.unlinkSync(filePath); 
-//     //         reject(new ApiError(500, `File read error: ${err.message}`));
-//     //     });
-//     //     stream.on('data', chunk => hash.update(chunk));
-//     //     stream.on('end', () => resolve(hash.digest('hex')));
-//     // });
-
-//     // // Duplication Check
-//     // const existingImage = await Image.findOne({ fileHash: hash }).select('+fileHash');
-
-//     // if (existingImage) {
-//     //     fs.unlinkSync(filePath); 
-
-//     //     if (req.body.forceUpload !== 'true') {
-//     //         throw new ApiError(409, "Image already exists. Send 'forceUpload: true' to upload again.", {
-//     //             imageId: existingImage._id,
-//     //             duplicate: true
-//     //         });
-//     //     }
-//     // }
-
-//     // add Image
-//     const newImage = await Image.create({
-//         userId : userId,
-//         originalPath: cloudinaryUrl, 
-//         fileName: publicId,
-//         processingType: processingType || 'analysis',
-//         metaData: {
-//             size: req.file.size,
-//             mimetype: req.file.mimetype,
-//             publicId : publicId,
-//         },
-//     });
-//     return res
-//         .status(201)
-//         .json(
-//             new ApiResponse(
-//                 201, 
-//                 newImage, 
-//                 "Image uploaded successfully. Processing initiated."
-//             )
-//         );
-// });
-
-// imageController.js
-
+// UploadImage
 const uploadImageController = asyncHandler(async (req,res) => {
-    // 1. Check Authentication (req.user)
+    
     if(!req.user || !req.user._id) { 
-        // This is a safety check if verifyJWT fails silently
         throw new ApiError(401, "User not authenticated for upload.");
     }
     
     try {
-        // --- STEP 1: Check File Receipt ---
         if(!req.file) {
-            // If the failure is before Cloudinary (e.g., in fileFilter), this runs
             console.log("[DEBUG] File upload failed before controller: req.file is missing."); 
             throw new ApiError(400, "No image file provided for upload.");
         }
@@ -93,7 +39,6 @@ const uploadImageController = asyncHandler(async (req,res) => {
         }
 
         
-        // --- STEP 2: Database Operation ---
         console.log("[DEBUG] Starting database creation...");
         const newImage = await Image.create({
             userId : req.user._id,
@@ -109,7 +54,6 @@ const uploadImageController = asyncHandler(async (req,res) => {
         });
         console.log("[DEBUG] Database entry successful. Sending response.");
 
-        // --- STEP 3: Successful Response ---
         return res
             .status(201)
             .json(
@@ -121,13 +65,10 @@ const uploadImageController = asyncHandler(async (req,res) => {
             );
 
     } catch (error) {
-        // 🛑 This catches ANY failure in the steps above
         console.error("Critical Upload Error:", error);
-        // This re-throws the error to your asyncHandler/errorMiddleware
         throw error; 
     }
 });
-// ... rest of the file
 
 // ImageProccessing Controller
 const getImageDetailsController = asyncHandler(async(req,res) => {
@@ -155,7 +96,7 @@ const getImageDetailsController = asyncHandler(async(req,res) => {
 
 })
 
-
+// resize image
 const  resizeImageController = asyncHandler(async (req,res) => {
     const { imageId, width , height } = req.body;
     const userId = req.user._id;
@@ -171,7 +112,7 @@ const  resizeImageController = asyncHandler(async (req,res) => {
     }
 
   
-    // authorization check 
+
     if(image.userId.toString() !== userId.toString()){
         throw new ApiError(403, "Access denied. You can only resize your own images.");
     }
@@ -181,22 +122,13 @@ const  resizeImageController = asyncHandler(async (req,res) => {
 
 
     try{
-        // Path define karna 
-        // const  originalFilePath = path.normalize(path.resolve(image.originalPath));
-        // const processedFileName = `resized-${width}x${height}-${image.fileName}`;
-        // const processedFilePath = path.resolve('public','uploads', processedFileName);
-
+      
         const processedUrl = cloudinary.url(publicId , {
             transformation : [{
                 crop : 'fill',width: parseInt(width),height: parseInt(height)
             }],
             fetch_format : 'auto'
         })
-
-        // // resizing Image by sharp module
-        // await sharp(originalFilePath)
-        // .resize(parseInt(width),parseInt(height))
-        // .toFile(processedFilePath);
 
         // Update Database Entry
         image.processedPath = processedUrl;
@@ -210,7 +142,6 @@ const  resizeImageController = asyncHandler(async (req,res) => {
             new ApiResponse(
                 200,{
                     ...image.toObject(),
-                    // Frontend ke liye Url (jahan se image serve hogi)
                     processedUrl: processedUrl
                 },
                 "Image resized successfully"
@@ -225,7 +156,7 @@ const  resizeImageController = asyncHandler(async (req,res) => {
 });
 
 
-
+// grayscaleImage controller
 const grayscaleImageController = asyncHandler(async(req,res) => {
 
     const { imageId } = req.body; 
