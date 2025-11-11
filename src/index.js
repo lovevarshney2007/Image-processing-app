@@ -42,7 +42,7 @@ const limiter = rateLimit({
     windowMs : 60*1000,
     max: 5,
     standardHeaders: true,
-    legacyHaders : false,
+    legacyHeaders : false,
     message: "Too many requests from this IP, please try again after 15 minutes",
 
     
