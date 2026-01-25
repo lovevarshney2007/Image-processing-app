@@ -203,7 +203,7 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
 
 // Forgot Passworder Controller
 const forgotPasswordController = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+  const { email,resetUrl } = req.body;
 
   if (!email) {
     throw new ApiError(400, "Email address is required to reset password.");
@@ -225,9 +225,20 @@ const forgotPasswordController = asyncHandler(async (req, res) => {
 
   await user.save({ validateBeforeSave: false });
 
-  const passwordResetURL = `${req.protocol}://${req.get(
-    "host"
-  )}/api/v1/auth/reset-password/${resetToken}`;
+  // const passwordResetURL = `${req.protocol}://${req.get(
+  //   "host"
+  // )}/api/v1/auth/reset-password/${resetToken}`;
+
+let passwordResetURL;
+
+
+  if(resetUrl){
+     passwordResetURL = `${resetUrl}/api/v1/auth/reset-password/${resetToken}`;
+  }
+  else {
+    const frontendBase = process.env.FRONTEND_URL || "http://localhost:5173/reset-password"
+     passwordResetURL = `${frontendBase}/api/v1/auth/reset-password/${resetToken}`
+  }
 
   console.log("Password Reset Token");
   console.log(`URL for ${email}: ${passwordResetURL}`);
