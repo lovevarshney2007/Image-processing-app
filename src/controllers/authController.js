@@ -236,7 +236,7 @@ let passwordResetURL;
      passwordResetURL = `${resetUrl}/api/v1/auth/reset-password/${resetToken}`;
   }
   else {
-    const frontendBase = process.env.FRONTEND_URL || "http://localhost:5173/reset-password"
+    const frontendBase = process.env.FRONTEND_URL || "http://localhost:5173"
      passwordResetURL = `${frontendBase}/api/v1/auth/reset-password/${resetToken}`
   }
 
